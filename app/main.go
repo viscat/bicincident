@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -12,8 +13,8 @@ import (
 func main() {
 	var router = mux.NewRouter()
 	router.HandleFunc("/healthcheck", healthCheck).Methods("GET")
-	router.HandleFunc("/message", handleQryMessage).Methods("GET")
-	router.HandleFunc("/m/{msg}", handleURLMessage).Methods("GET")
+	router.HandleFunc("/video/add/{filename}", handleAddVideo).Methods("GET")
+	router.HandleFunc("/video/{id}", handleGetVideo).Methods("GET")
 
 	fmt.Println("Running server!")
 	log.Fatal(http.ListenAndServe(":8080", router))
@@ -26,13 +27,30 @@ func handleQryMessage(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": message})
 }
 
-func handleURLMessage(w http.ResponseWriter, r *http.Request) {
+func handleAddVideo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	message := vars["msg"]
+	filename := vars["filename"]
 
-	json.NewEncoder(w).Encode(map[string]string{"message": message})
+	video := uploadVideo(filename)
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "Video uploaded with id: " + video.Id})
+
+	//v := videoInfo("P2f_PyPrxgY")
+	//json.NewEncoder(w).Encode(map[string]string{"message": strconv.Itoa(int((v.FileDetails.DurationMs / 1000)))})
+}
+
+func handleGetVideo(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	v := videoInfo(id)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": strconv.Itoa(int((v.FileDetails.DurationMs / 1000))),
+		"a":       v.ContentDetails.Duration,
+		"b":       v.ContentDetails.Dimension,
+		"c":       v.Player.EmbedHtml,
+	})
 }
 
 func healthCheck(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode("Still alivea!")
+	json.NewEncoder(w).Encode("Still alive!")
 }
