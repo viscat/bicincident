@@ -1,0 +1,10 @@
+version: "3"
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./app:/go/src/github.com/viscat/bicincident/app
+    ports:
+      - "8585:8080"
